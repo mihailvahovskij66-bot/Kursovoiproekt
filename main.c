@@ -7,6 +7,13 @@
 #define ARCHIVE_PERCENT 80
 #define FULL_PERCENT 100
 #define ARCHIVE_LIMIT (BUFFER_SIZE * ARCHIVE_PERCENT / FULL_PERCENT)
+typedef struct event {
+	int h;				/* Час события. */
+	int m;				/* Минута события. */
+	char node[NODE_SIZE];		/* Название узла. */
+	int logins;			/* Количество входов. */
+	int failures;			/* Неудачные попытки входа. */
+} Event;
 int main (void)
 {
     puts("Здравствуйте!");
