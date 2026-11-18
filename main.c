@@ -40,6 +40,7 @@ int main (void)
 	}
     printf("Вы ввели: %s", line);
     printf("Час: %d\n", current.h);
-	printf("Минута: %d\n", current.m);
+	printf("Минута: %d\n", current.m);	
+    printf("Узел: %s\n", current.node);
     return 0;
 }
