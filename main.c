@@ -39,5 +39,7 @@ int main (void)
 		return 1;
 	}
     printf("Вы ввели: %s", line);
+    printf("Час: %d\n", current.h);
+	printf("Минута: %d\n", current.m);
     return 0;
 }
