@@ -42,5 +42,7 @@ int main (void)
     printf("Час: %d\n", current.h);
 	printf("Минута: %d\n", current.m);	
     printf("Узел: %s\n", current.node);
+    printf("Количество входов: %d\n", current.logins);
+    printf("Неудачные попытки: %d\n", current.failures);
     return 0;
 }
