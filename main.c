@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define MAX_HOUR 23
+#define MAX_MINUTE 59
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
@@ -41,6 +42,10 @@ int main (void)
 	}
     	if (current.h < 0 || current.h > MAX_HOUR) {
 		puts("Час должен быть от 0 до 23.");
+		return 1;
+	}
+    	if (current.m < 0 || current.m > MAX_MINUTE) {
+		puts("Минута должна быть от 0 до 59.");
 		return 1;
 	}
     printf("Вы ввели: %s", line);
