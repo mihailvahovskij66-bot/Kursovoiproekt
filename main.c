@@ -24,5 +24,6 @@ int main (void)
 		puts("Не удалось прочитать сообщение.");
 		return 1;
 	}
+    printf("Вы ввели: %s", line);
     return 0;
 }
