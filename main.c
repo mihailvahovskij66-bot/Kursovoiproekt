@@ -16,8 +16,13 @@ typedef struct event {
 } Event;
 int main (void)
 {
+    char line[LINE_SIZE];		/* Строка сообщения. */
     puts("Здравствуйте!");
 	puts("Программа обрабатывает записи сервера авторизации.");
     puts("Введите сообщение: час:минута node logins failures");
+    if (fgets(line, LINE_SIZE, stdin) == NULL) {
+		puts("Не удалось прочитать сообщение.");
+		return 1;
+	}
     return 0;
 }
