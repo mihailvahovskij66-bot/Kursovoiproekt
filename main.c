@@ -48,6 +48,15 @@ int main (void)
 		puts("Минута должна быть от 0 до 59.");
 		return 1;
 	}
+    	if (current.logins < 0) {
+		puts("Количество входов должно быть не меньше нуля.");
+		return 1;
+	}
+
+	if (current.failures < 0) {
+		puts("Количество неудачных попыток должно быть не меньше нуля.");
+		return 1;
+	}
     printf("Вы ввели: %s", line);
     printf("Час: %d\n", current.h);
 	printf("Минута: %d\n", current.m);	
