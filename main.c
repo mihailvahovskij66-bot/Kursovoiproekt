@@ -31,6 +31,10 @@ int main (void)
 	char extra;			/* Проверка лишних символов. */
 	int next_char;			/* Остаток слишком длинной строки. */
 
+	Event buffer[BUFFER_SIZE];	/* Буфер записей сервера. */
+	int buffer_count = 0;		/* Количество записей в буфере. */
+	int i;
+
 	system("chcp 65001 > nul");
 	puts("Здравствуйте!");
 	puts("Программа обрабатывает записи сервера авторизации.");
@@ -76,6 +80,14 @@ int main (void)
 			continue;
 		}
 
+		if (buffer_count >= BUFFER_SIZE) {
+			puts("Буфер заполнен. Запись не сохранена.");
+			continue;
+		}
+		buffer[buffer_count] = current;
+		buffer_count++;
+		printf("Записей в буфере: %d из %d\n", buffer_count, BUFFER_SIZE);
+
 		printf("Вы ввели: %s", line);
 		printf("Час: %d\n", current.h);
 		printf("Минута: %d\n", current.m);
@@ -87,6 +99,13 @@ int main (void)
 	if (ferror(stdin)) {
 		puts("Не удалось прочитать сообщение.");
 		return 1;
+	}
+
+	puts("Записи, оставшиеся в буфере:");
+	for (i = 0; i < buffer_count; i++) {
+		printf("%02d:%02d %s %d %d\n",
+			buffer[i].h, buffer[i].m, buffer[i].node,
+			buffer[i].logins, buffer[i].failures);
 	}
 
 	return 0;
