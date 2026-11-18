@@ -1,4 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
+#define MAX_HOUR 23
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
@@ -36,6 +37,10 @@ int main (void)
 		&current.logins, &current.failures, &extra);
 	if (fields != FIELD_COUNT) {
 		puts("Неверный формат сообщения.");
+		return 1;
+	}
+    	if (current.h < 0 || current.h > MAX_HOUR) {
+		puts("Час должен быть от 0 до 23.");
 		return 1;
 	}
     printf("Вы ввели: %s", line);
