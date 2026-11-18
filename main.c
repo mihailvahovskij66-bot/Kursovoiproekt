@@ -19,49 +19,75 @@ typedef struct event {
 	int logins;			/* Количество входов. */
 	int failures;			/* Неудачные попытки входа. */
 } Event;
+/*
+ * Читает сообщения сервера и проверяет их поля.
+ * Возвращает 0 при завершении, 1 при ошибке чтения.
+ */
 int main (void)
 {
-    char line[LINE_SIZE];
-    Event current;			/* Текущая запись. */
+	char line[LINE_SIZE];		/* Строка сообщения. */
+	Event current;			/* Текущая запись. */
 	int fields;			/* Количество прочитанных полей. */
 	char extra;			/* Проверка лишних символов. */
-    system("chcp 65001 > nul");	
-    puts("Здравствуйте!");
+	int next_char;			/* Остаток слишком длинной строки. */
+
+	system("chcp 65001 > nul");
+	puts("Здравствуйте!");
 	puts("Программа обрабатывает записи сервера авторизации.");
-    puts("Введите сообщение: час:минута node logins failures");
-    if (fgets(line, LINE_SIZE, stdin) == NULL) {
+	puts("Для завершения нажмите Enter на пустой строке.");
+
+	while (1) {
+		puts("Введите сообщение: час:минута node logins failures");
+		if (fgets(line, LINE_SIZE, stdin) == NULL) {
+			break;
+		}
+		if (line[0] == '\n') {
+			break;
+		}
+		if (strchr(line, '\n') == NULL && !feof(stdin)) {
+			while ((next_char = getchar()) != '\n' && next_char != EOF) {
+				/* Пропускаем остаток слишком длинного сообщения. */
+			}
+			puts("Сообщение слишком длинное.");
+			continue;
+		}
+
+		fields = sscanf(line, "%9d:%9d %31s %9d %9d %c",
+			&current.h, &current.m, current.node,
+			&current.logins, &current.failures, &extra);
+		if (fields != FIELD_COUNT) {
+			puts("Неверный формат сообщения.");
+			continue;
+		}
+		if (current.h < 0 || current.h > MAX_HOUR) {
+			puts("Час должен быть от 0 до 23.");
+			continue;
+		}
+		if (current.m < 0 || current.m > MAX_MINUTE) {
+			puts("Минута должна быть от 0 до 59.");
+			continue;
+		}
+		if (current.logins < 0) {
+			puts("Количество входов должно быть не меньше нуля.");
+			continue;
+		}
+		if (current.failures < 0) {
+			puts("Количество неудачных попыток должно быть не меньше нуля.");
+			continue;
+		}
+
+		printf("Вы ввели: %s", line);
+		printf("Час: %d\n", current.h);
+		printf("Минута: %d\n", current.m);
+		printf("Узел: %s\n", current.node);
+		printf("Количество входов: %d\n", current.logins);
+		printf("Неудачные попытки: %d\n", current.failures);
+	}
+
+	if (ferror(stdin)) {
 		puts("Не удалось прочитать сообщение.");
 		return 1;
 	}
-    fields = sscanf(line, "%9d:%9d %31s %9d %9d %c",
-		&current.h, &current.m, current.node,
-		&current.logins, &current.failures, &extra);
-	if (fields != FIELD_COUNT) {
-		puts("Неверный формат сообщения.");
-		return 1;
-	}
-    	if (current.h < 0 || current.h > MAX_HOUR) {
-		puts("Час должен быть от 0 до 23.");
-		return 1;
-	}
-    	if (current.m < 0 || current.m > MAX_MINUTE) {
-		puts("Минута должна быть от 0 до 59.");
-		return 1;
-	}
-    	if (current.logins < 0) {
-		puts("Количество входов должно быть не меньше нуля.");
-		return 1;
-	}
 
-	if (current.failures < 0) {
-		puts("Количество неудачных попыток должно быть не меньше нуля.");
-		return 1;
-	}
-    printf("Вы ввели: %s", line);
-    printf("Час: %d\n", current.h);
-	printf("Минута: %d\n", current.m);	
-    printf("Узел: %s\n", current.node);
-    printf("Количество входов: %d\n", current.logins);
-    printf("Неудачные попытки: %d\n", current.failures);
-    return 0;
+	return 0;
 }
