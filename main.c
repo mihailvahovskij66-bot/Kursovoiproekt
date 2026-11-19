@@ -119,6 +119,17 @@ int main (void)
 		puts("Не удалось прочитать сообщение.");
 		return 1;
 	}
+	if (buffer_count > 0) {
+		written_count = archive_events(buffer, buffer_count);
+		if (written_count < 0) {
+			puts("Не удалось сохранить оставшиеся записи в архив.");
+			return 1;
+		}
+		archived_count += written_count;
+		buffer_count = 0;
+		puts("Оставшиеся записи сохранены в архив.");
+	}
+
 	printf("Получено записей: %d\n", received_count);
 	printf("Отброшено дубликатов: %d\n", duplicate_count);
 	printf("Записано в архив: %d\n", archived_count);
