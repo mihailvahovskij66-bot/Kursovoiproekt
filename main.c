@@ -34,7 +34,8 @@ int main (void)
 	int next_char;			/* Остаток слишком длинной строки. */
 
 	Event buffer[BUFFER_SIZE];	/* Буфер записей сервера. */
-	int buffer_count = 0;		/* Количество записей в буфере. */
+	int buffer_count = 0;
+	int received_count = 0;		/* Количество полученных корректных записей. */		/* Количество записей в буфере. */
 	int i;
 
 	system("chcp 65001 > nul");
@@ -81,6 +82,7 @@ int main (void)
 			puts("Количество неудачных попыток должно быть не меньше нуля.");
 			continue;
 		}
+		received_count++;
 		if (is_duplicate(buffer, buffer_count, current) == 1) {
 			puts("Запись является дубликатом и не сохранена.");
 			continue;
@@ -106,7 +108,7 @@ int main (void)
 		puts("Не удалось прочитать сообщение.");
 		return 1;
 	}
-
+	printf("Получено записей: %d\n", received_count);
 	puts("Записи, оставшиеся в буфере:");
 	for (i = 0; i < buffer_count; i++) {
 		printf("%02d:%02d %s %d %d\n",
