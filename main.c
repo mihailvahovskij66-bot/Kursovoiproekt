@@ -35,6 +35,8 @@ int main (void)
 	int received_count = 0;
 	int duplicate_count = 0;		/* Количество отброшенных дубликатов. */		/* Количество полученных корректных записей. */		/* Количество записей в буфере. */
 	int i;
+	int written_count;		/* Результат записи буфера в архив. */
+	int archived_count = 0;		/* Записано в архив за текущий запуск. */
 
 	system("chcp 65001 > nul");
 	puts("Здравствуйте!");
@@ -101,6 +103,16 @@ int main (void)
 		printf("Узел: %s\n", current.node);
 		printf("Количество входов: %d\n", current.logins);
 		printf("Неудачные попытки: %d\n", current.failures);
+		if (buffer_count >= ARCHIVE_LIMIT) {
+			written_count = archive_events(buffer, buffer_count);
+			if (written_count < 0) {
+				puts("Не удалось записать данные в архив.");
+				return 1;
+			}
+			archived_count += written_count;
+			buffer_count = 0;
+			printf("В архив записано записей: %d\n", written_count);
+		}		
 	}
 
 	if (ferror(stdin)) {
@@ -109,6 +121,7 @@ int main (void)
 	}
 	printf("Получено записей: %d\n", received_count);
 	printf("Отброшено дубликатов: %d\n", duplicate_count);
+	printf("Записано в архив: %d\n", archived_count);
 	puts("Записи, оставшиеся в буфере:");
 	for (i = 0; i < buffer_count; i++) {
 		printf("%02d:%02d %s %d %d\n",
