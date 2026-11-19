@@ -19,6 +19,8 @@ typedef struct event {
 	int logins;			/* Количество входов. */
 	int failures;			/* Неудачные попытки входа. */
 } Event;
+int is_duplicate(const Event *ptrbuffer, int count, Event current);
+
 /*
  * Читает сообщения сервера и проверяет их поля.
  * Возвращает 0 при завершении, 1 при ошибке чтения.
@@ -106,6 +108,18 @@ int main (void)
 		printf("%02d:%02d %s %d %d\n",
 			buffer[i].h, buffer[i].m, buffer[i].node,
 			buffer[i].logins, buffer[i].failures);
+	}
+
+	return 0;
+}
+int is_duplicate(const Event *ptrbuffer, int count, Event current) {
+	int i;
+
+	for (i = 0; i < count; i++) {
+		if (strcmp(ptrbuffer[i].node, current.node) == 0 &&
+			ptrbuffer[i].failures == current.failures) {
+			return 1;
+		}
 	}
 
 	return 0;
