@@ -81,6 +81,10 @@ int main (void)
 			puts("Количество неудачных попыток должно быть не меньше нуля.");
 			continue;
 		}
+		if (is_duplicate(buffer, buffer_count, current) == 1) {
+			puts("Запись является дубликатом и не сохранена.");
+			continue;
+		}
 
 		if (buffer_count >= BUFFER_SIZE) {
 			puts("Буфер заполнен. Запись не сохранена.");
