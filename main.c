@@ -1,4 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
+#define ARCHIVE_FILE "archive.txt"
 #define MAX_HOUR 23
 #define MAX_MINUTE 59
 #include <stdio.h>
@@ -20,11 +21,7 @@ typedef struct event {
 	int failures;			/* Неудачные попытки входа. */
 } Event;
 int is_duplicate(const Event *ptrbuffer, int count, Event current);
-
-/*
- * Читает сообщения сервера и проверяет их поля.
- * Возвращает 0 при завершении, 1 при ошибке чтения.
- */
+int archive_events(const Event *ptrbuffer, int count);
 int main (void)
 {
 	char line[LINE_SIZE];		/* Строка сообщения. */
@@ -132,4 +129,28 @@ int is_duplicate(const Event *ptrbuffer, int count, Event current) {
 	}
 
 	return 0;
+}
+int archive_events(const Event *ptrbuffer, int count) {
+	FILE *ptrarchive;		/* Файл архива. */
+	int i;
+
+	ptrarchive = fopen(ARCHIVE_FILE, "a");
+	if (ptrarchive == NULL) {
+		return -1;
+	}
+
+	for (i = 0; i < count; i++) {
+		if (fprintf(ptrarchive, "%02d:%02d %s %d %d\n",
+			ptrbuffer[i].h, ptrbuffer[i].m, ptrbuffer[i].node,
+			ptrbuffer[i].logins, ptrbuffer[i].failures) < 0) {
+			fclose(ptrarchive);
+			return -1;
+		}
+	}
+
+	if (fclose(ptrarchive) == EOF) {
+		return -1;
+	}
+
+	return count;
 }
