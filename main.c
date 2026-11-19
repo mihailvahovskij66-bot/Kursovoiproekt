@@ -35,7 +35,8 @@ int main (void)
 
 	Event buffer[BUFFER_SIZE];	/* Буфер записей сервера. */
 	int buffer_count = 0;
-	int received_count = 0;		/* Количество полученных корректных записей. */		/* Количество записей в буфере. */
+	int received_count = 0;
+	int duplicate_count = 0;		/* Количество отброшенных дубликатов. */		/* Количество полученных корректных записей. */		/* Количество записей в буфере. */
 	int i;
 
 	system("chcp 65001 > nul");
@@ -84,6 +85,7 @@ int main (void)
 		}
 		received_count++;
 		if (is_duplicate(buffer, buffer_count, current) == 1) {
+			duplicate_count++;
 			puts("Запись является дубликатом и не сохранена.");
 			continue;
 		}
@@ -109,6 +111,7 @@ int main (void)
 		return 1;
 	}
 	printf("Получено записей: %d\n", received_count);
+	printf("Отброшено дубликатов: %d\n", duplicate_count);
 	puts("Записи, оставшиеся в буфере:");
 	for (i = 0; i < buffer_count; i++) {
 		printf("%02d:%02d %s %d %d\n",
