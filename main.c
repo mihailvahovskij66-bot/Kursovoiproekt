@@ -69,6 +69,7 @@ int main (void)
 	puts("Здравствуйте!");
 	puts("Программа обрабатывает записи сервера авторизации.");
 	puts("Для завершения нажмите Enter на пустой строке.");
+	puts("Для подсказки введите /help.");
 
 	while (1) {
 		puts("Введите сообщение: час:минута node logins failures");
@@ -83,6 +84,17 @@ int main (void)
 				/* Пропускаем остаток слишком длинного сообщения. */
 			}
 			puts("Сообщение слишком длинное.");
+			continue;
+		}
+		if (strcmp(line, "/help\n") == 0 ||
+			strcmp(line, "/help") == 0) {
+			puts("Формат: час:минута node logins failures");
+			puts("Пример: 09:30 node1 12 2");
+			printf("Час: от 0 до %d. Минута: от 0 до %d.\n",
+				MAX_HOUR, MAX_MINUTE);
+			puts("node — название узла без пробелов.");
+			puts("logins и failures — целые числа от нуля.");
+			puts("Для завершения нажмите Enter на пустой строке.");
 			continue;
 		}
 
