@@ -70,6 +70,7 @@ int main (void)
 	puts("Программа обрабатывает записи сервера авторизации.");
 	puts("Для завершения нажмите Enter на пустой строке.");
 	puts("Для подсказки введите /help.");
+	puts("Для просмотра статистики введите /stats.");
 
 	while (1) {
 		puts("Введите сообщение: час:минута node logins failures");
@@ -94,7 +95,17 @@ int main (void)
 				MAX_HOUR, MAX_MINUTE);
 			puts("node — название узла без пробелов.");
 			puts("logins и failures — целые числа от нуля.");
+			puts("Команда /stats показывает текущую статистику.");
 			puts("Для завершения нажмите Enter на пустой строке.");
+			continue;
+		}
+		if (strcmp(line, "/stats\n") == 0 ||
+			strcmp(line, "/stats") == 0) {
+			puts("Текущая статистика:");
+			printf("Получено записей: %d\n", received_count);
+			printf("Отброшено дубликатов: %d\n", duplicate_count);
+			printf("Записано в архив: %d\n", archived_count);
+			printf("Записей в буфере: %d из %d\n", buffer_count, BUFFER_SIZE);
 			continue;
 		}
 
