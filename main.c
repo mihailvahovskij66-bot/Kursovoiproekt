@@ -71,7 +71,7 @@ int main (void)
 	puts("Для завершения нажмите Enter на пустой строке.");
 	puts("Для подсказки введите /help.");
 	puts("Для просмотра статистики введите /stats.");
-
+	puts("Для просмотра записей в буфере введите /buffer.");
 	while (1) {
 		puts("Введите сообщение: час:минута node logins failures");
 		if (fgets(line, LINE_SIZE, stdin) == NULL) {
@@ -96,6 +96,7 @@ int main (void)
 			puts("node — название узла без пробелов.");
 			puts("logins и failures — целые числа от нуля.");
 			puts("Команда /stats показывает текущую статистику.");
+			puts("Команда /buffer показывает записи текущего буфера.");			
 			puts("Для завершения нажмите Enter на пустой строке.");
 			continue;
 		}
@@ -106,6 +107,19 @@ int main (void)
 			printf("Отброшено дубликатов: %d\n", duplicate_count);
 			printf("Записано в архив: %d\n", archived_count);
 			printf("Записей в буфере: %d из %d\n", buffer_count, BUFFER_SIZE);
+			continue;
+		}
+		if (strcmp(line, "/buffer\n") == 0 ||
+			strcmp(line, "/buffer") == 0) {
+			puts("Текущий буфер:");
+			if (buffer_count == 0) {
+				puts("Буфер пуст.");
+			}
+			for (i = 0; i < buffer_count; i++) {
+				printf("%02d:%02d %s %d %d\n",
+					buffer[i].h, buffer[i].m, buffer[i].node,
+					buffer[i].logins, buffer[i].failures);
+			}
 			continue;
 		}
 
