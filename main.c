@@ -64,7 +64,8 @@ int main (void)
 	int i;
 	int written_count;		/* Результат записи буфера в архив. */
 	int archived_count = 0;		/* Записано в архив за текущий запуск. */
-
+	int invalid_count = 0;		/* Количество некорректных сообщений. */
+	
 	system("chcp 65001 > nul");
 	puts("Здравствуйте!");
 	puts("Программа обрабатывает записи сервера авторизации.");
@@ -84,6 +85,7 @@ int main (void)
 			while ((next_char = getchar()) != '\n' && next_char != EOF) {
 				/* Пропускаем остаток слишком длинного сообщения. */
 			}
+			invalid_count++;
 			puts("Сообщение слишком длинное.");
 			continue;
 		}
@@ -105,6 +107,7 @@ int main (void)
 			puts("Текущая статистика:");
 			printf("Получено записей: %d\n", received_count);
 			printf("Отброшено дубликатов: %d\n", duplicate_count);
+			printf("Некорректных сообщений: %d\n", invalid_count);
 			printf("Записано в архив: %d\n", archived_count);
 			printf("Записей в буфере: %d из %d\n", buffer_count, BUFFER_SIZE);
 			continue;
@@ -127,22 +130,27 @@ int main (void)
 			&current.h, &current.m, current.node,
 			&current.logins, &current.failures, &extra);
 		if (fields != FIELD_COUNT) {
+			invalid_count++;
 			puts("Неверный формат сообщения.");
 			continue;
 		}
 		if (current.h < 0 || current.h > MAX_HOUR) {
+			invalid_count++;
 			puts("Час должен быть от 0 до 23.");
 			continue;
 		}
 		if (current.m < 0 || current.m > MAX_MINUTE) {
+			invalid_count++;
 			puts("Минута должна быть от 0 до 59.");
 			continue;
 		}
 		if (current.logins < 0) {
+			invalid_count++;
 			puts("Количество входов должно быть не меньше нуля.");
 			continue;
 		}
 		if (current.failures < 0) {
+			invalid_count++;
 			puts("Количество неудачных попыток должно быть не меньше нуля.");
 			continue;
 		}
@@ -198,6 +206,7 @@ int main (void)
 	printf("Отброшено дубликатов: %d\n", duplicate_count);
 	printf("Записано в архив: %d\n", archived_count);
 	puts("Записи, оставшиеся в буфере:");
+	printf("Некорректных сообщений: %d\n", invalid_count);
 	for (i = 0; i < buffer_count; i++) {
 		printf("%02d:%02d %s %d %d\n",
 			buffer[i].h, buffer[i].m, buffer[i].node,
