@@ -215,6 +215,12 @@ int main (void)
 
 	return 0;
 }
+/*
+ * Проверяет, есть ли дубликат в текущем буфере.
+ * ptrbuffer - массив записей, count - количество записей в нём.
+ * current - запись, которую нужно проверить.
+ * Возвращает 1 при совпадении node и failures, иначе 0.
+ */
 int is_duplicate(const Event *ptrbuffer, int count, Event current) {
 	int i;
 
@@ -227,6 +233,12 @@ int is_duplicate(const Event *ptrbuffer, int count, Event current) {
 
 	return 0;
 }
+/*
+ * Дописывает записи буфера в файл ARCHIVE_FILE.
+ * ptrbuffer - массив записей, count - количество записей для сохранения.
+ * Создаёт файл, если его ещё нет. Записывает по одному событию на строку.
+ * Возвращает count при успехе или -1 при ошибке работы с файлом.
+ */
 int archive_events(const Event *ptrbuffer, int count) {
 	FILE *ptrarchive;		/* Файл архива. */
 	int i;
