@@ -38,16 +38,6 @@ typedef struct event {
  * Возвращает 0, если дубликат отсутствует.
  */
 int is_duplicate(const Event *ptrbuffer, int count, Event current);
-/*
- * Дописывает записи буфера в текстовый файл архива.
- * ptrbuffer - массив записей для сохранения.
- * count - количество сохраняемых записей.
- * Открывает файл ARCHIVE_FILE в режиме дописывания.
- * Записывает каждое событие отдельной строкой и закрывает файл.
- * Создаёт файл, если он отсутствует.
- * Возвращает count при успешном сохранении.
- * Возвращает -1 при ошибке открытия, записи или закрытия файла.
- */
 int archive_events(const Event *ptrbuffer, int count);
 int main (void)
 {
@@ -155,11 +145,6 @@ int main (void)
 			continue;
 		}
 		received_count++;
-		if (is_duplicate(buffer, buffer_count, current) == 1) {
-			duplicate_count++;
-			puts("Запись является дубликатом и не сохранена.");
-			continue;
-		}
 
 		if (buffer_count >= BUFFER_SIZE) {
 			puts("Буфер заполнен. Запись не сохранена.");
@@ -181,8 +166,9 @@ int main (void)
 				puts("Не удалось записать данные в архив.");
 				return 1;
 			}
-			archived_count += written_count;
-			buffer_count = 0;
+		duplicate_count += buffer_count - written_count;
+		archived_count += written_count;
+		buffer_count = 0;
 			printf("В архив записано записей: %d\n", written_count);
 		}		
 	}
@@ -197,6 +183,7 @@ int main (void)
 			puts("Не удалось сохранить оставшиеся записи в архив.");
 			return 1;
 		}
+		duplicate_count += buffer_count - written_count;
 		archived_count += written_count;
 		buffer_count = 0;
 		puts("Оставшиеся записи сохранены в архив.");
@@ -234,24 +221,33 @@ int is_duplicate(const Event *ptrbuffer, int count, Event current) {
 	return 0;
 }
 /*
- * Дописывает записи буфера в файл ARCHIVE_FILE.
- * ptrbuffer - массив записей, count - количество записей для сохранения.
- * Создаёт файл, если его ещё нет. Записывает по одному событию на строку.
- * Возвращает count при успехе или -1 при ошибке работы с файлом.
+ * Отбирает уникальные события и дописывает их в файл ARCHIVE_FILE.
+ * ptrbuffer - массив событий, count - количество событий в массиве.
+ * Для каждой пары node и failures сохраняет первое событие.
+ * Возвращает число записанных событий или -1 при ошибке работы с файлом.
  */
 int archive_events(const Event *ptrbuffer, int count) {
-	FILE *ptrarchive;		/* Файл архива. */
+	Event unique_events[BUFFER_SIZE];	/* Записи для архива. */
+	int unique_count = 0;			/* Число уникальных записей. */
+	FILE *ptrarchive;			/* Файл архива. */
 	int i;
+
+	for (i = 0; i < count; i++) {
+		if (is_duplicate(unique_events, unique_count, ptrbuffer[i]) == 0) {
+			unique_events[unique_count] = ptrbuffer[i];
+			unique_count++;
+		}
+	}
 
 	ptrarchive = fopen(ARCHIVE_FILE, "a");
 	if (ptrarchive == NULL) {
 		return -1;
 	}
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < unique_count; i++) {
 		if (fprintf(ptrarchive, "%02d:%02d %s %d %d\n",
-			ptrbuffer[i].h, ptrbuffer[i].m, ptrbuffer[i].node,
-			ptrbuffer[i].logins, ptrbuffer[i].failures) < 0) {
+			unique_events[i].h, unique_events[i].m, unique_events[i].node,
+			unique_events[i].logins, unique_events[i].failures) < 0) {
 			fclose(ptrarchive);
 			return -1;
 		}
@@ -261,5 +257,5 @@ int archive_events(const Event *ptrbuffer, int count) {
 		return -1;
 	}
 
-	return count;
+	return unique_count;
 }
