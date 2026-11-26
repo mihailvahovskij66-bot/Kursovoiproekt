@@ -10,14 +10,16 @@
 #define ARCHIVE_FILE "archive.txt"
 #define MAX_HOUR 23
 #define MAX_MINUTE 59
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
 #include <stdlib.h>
+
 #define BUFFER_SIZE 10
 #define NODE_SIZE 32
 #define LINE_SIZE 128
-#define FIELD_COUNT 5
 #define ARCHIVE_PERCENT 80
 #define FULL_PERCENT 100
 #define ARCHIVE_LIMIT (BUFFER_SIZE * ARCHIVE_PERCENT / FULL_PERCENT)
@@ -39,12 +41,14 @@ typedef struct event {
  */
 int is_duplicate(const Event *ptrbuffer, int count, Event current);
 int archive_events(const Event *ptrbuffer, int count);
+static int parse_event(const char *ptrline, Event *ptrevent);
+static int parse_int_field(const char *ptrstart, const char *ptrend,
+	int *ptrvalue);
+
 int main (void)
 {
 	char line[LINE_SIZE];		/* Строка сообщения. */
 	Event current;			/* Текущая запись. */
-	int fields;			/* Количество прочитанных полей. */
-	char extra;			/* Проверка лишних символов. */
 	int next_char;			/* Остаток слишком длинной строки. */
 
 	Event buffer[BUFFER_SIZE];	/* Буфер записей сервера. */
@@ -116,17 +120,9 @@ int main (void)
 			continue;
 		}
 
-		fields = sscanf(line, "%9d:%9d %31s %9d %9d %c",
-			&current.h, &current.m, current.node,
-			&current.logins, &current.failures, &extra);
-		if (fields != FIELD_COUNT) {
+				if (!parse_event(line, &current)) {
 			invalid_count++;
 			puts("Неверный формат сообщения.");
-			continue;
-		}
-		if (current.h < 0 || current.h > MAX_HOUR) {
-			invalid_count++;
-			puts("Час должен быть от 0 до 23.");
 			continue;
 		}
 		if (current.m < 0 || current.m > MAX_MINUTE) {
@@ -202,6 +198,74 @@ int main (void)
 
 	return 0;
 }
+/*
+ * Разбирает строку ptrline и заполняет запись ptrevent.
+ * Проверяет число полей, разделители и длину имени узла.
+ * Возвращает 1 при успехе или 0 при ошибке разбора.
+ */
+static int parse_event(const char *ptrline, Event *ptrevent) {
+	int time_end;		/* Конец поля времени. */
+	int node_start;		/* Начало имени узла. */
+	int node_end;		/* Конец имени узла. */
+	int logins_start;	/* Начало поля logins. */
+	int logins_end;		/* Конец поля logins. */
+	int failures_start;	/* Начало поля failures. */
+	int failures_end;	/* Конец поля failures. */
+	int consumed = 0;	/* Длина разобранной части строки. */
+	const char *ptrcolon;	/* Двоеточие между часом и минутой. */
+	size_t node_length;	/* Длина имени узла. */
+
+	/* %*s пропускает поле целиком, а %n сохраняет позицию в строке. */
+	(void)sscanf(ptrline, "%*s%n %n%*s%n %n%*s%n %n%*s%n %n",
+		&time_end, &node_start, &node_end, &logins_start, &logins_end,
+		&failures_start, &failures_end, &consumed);
+
+	if (consumed == 0 || ptrline[consumed] != '\0') {
+		return 0;
+	}
+
+	ptrcolon = strchr(ptrline, ':');
+	node_length = (size_t)(node_end - node_start);
+	if (ptrcolon == NULL || ptrcolon >= ptrline + time_end ||
+		node_length >= sizeof(ptrevent->node)) {
+		return 0;
+	}
+
+	if (!parse_int_field(ptrline, ptrcolon, &ptrevent->h) ||
+		!parse_int_field(ptrcolon + 1, ptrline + time_end, &ptrevent->m) ||
+		!parse_int_field(ptrline + logins_start, ptrline + logins_end,
+			&ptrevent->logins) ||
+		!parse_int_field(ptrline + failures_start, ptrline + failures_end,
+			&ptrevent->failures)) {
+		return 0;
+	}
+
+	memcpy(ptrevent->node, ptrline + node_start, node_length);
+	ptrevent->node[node_length] = '\0';
+	return 1;
+}
+
+/*
+ * Разбирает целое число от ptrstart до позиции ptrend.
+ * При успехе сохраняет значение через ptrvalue и возвращает 1.
+ * Возвращает 0 при неверном формате или выходе за диапазон int.
+ */
+static int parse_int_field(const char *ptrstart, const char *ptrend,
+	int *ptrvalue) {
+	char *ptrtail;	/* Первый символ после разобранного числа. */
+	long value;	/* Число до проверки диапазона int. */
+
+	errno = 0;
+	value = strtol(ptrstart, &ptrtail, 10);
+	if (ptrtail == ptrstart || ptrtail != ptrend || errno == ERANGE ||
+		value < INT_MIN || value > INT_MAX) {
+		return 0;
+	}
+
+	*ptrvalue = (int)value;
+	return 1;
+}
+
 /*
  * Проверяет, есть ли дубликат в текущем буфере.
  * ptrbuffer - массив записей, count - количество записей в нём.
